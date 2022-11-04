@@ -198,6 +198,7 @@ namespace AudioMediaPlayer.Services
             musicPostion = postion;
             musicImage = _musicClass[musicPostion].MusicImageId;
             musicName = _musicClass[musicPostion].MusicName;
+
             ISharedPreferencesEditor sharedPreferencesEditor = GetSharedPreferences(_musiclastPlayed, FileCreationMode.Private)
                                                                .Edit();
             sharedPreferencesEditor.PutInt(_musicFile, musicPostion);

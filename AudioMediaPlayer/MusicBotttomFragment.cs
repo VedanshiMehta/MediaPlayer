@@ -139,6 +139,8 @@ namespace AudioMediaPlayer
                 }
 
             }
+         
+            
         }
 
         public override void OnPause()

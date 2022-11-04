@@ -72,7 +72,7 @@ namespace AudioMediaPlayer
         protected override void OnResume()
         {
             base.OnResume();
-
+            
             Intent i = new Intent(this, typeof(MusicPlayingService));
             BindService(i, this, Bind.AutoCreate);
         }
@@ -228,12 +228,12 @@ namespace AudioMediaPlayer
             }
             previousPosition = nextPostion;
             mNextPostion = nextPostion;
+            positionAdapter = mNextPostion;
             int musicid = _musicClass[nextPostion].MusicId;
             int musicimageid = _musicClass[nextPostion].MusicImageId;
             string musicname = _musicClass[nextPostion].MusicName;
             _musicPlayingService.ShowNotification(nextPostion, Resource.Drawable.ic_pause);
             LoadMusic(musicname,musicid,musicimageid);
-          
            
 
 
@@ -280,14 +280,13 @@ namespace AudioMediaPlayer
             }
             nextPostion = previousPosition;
             mPreviousPosition = previousPosition;
-          
+            positionAdapter = previousPosition;
             int musicid = _musicClass[previousPosition].MusicId;
             int musicimageid = _musicClass[previousPosition].MusicImageId;
             string musicname = _musicClass[previousPosition].MusicName;
             
             _musicPlayingService.ShowNotification(previousPosition, Resource.Drawable.ic_pause);
             LoadMusic(musicname, musicid, musicimageid);
-
         }
 
         private void _floatingActionButton_Click(object sender, EventArgs e)
@@ -350,7 +349,7 @@ namespace AudioMediaPlayer
             OnBackPressed();
             return base.OnSupportNavigateUp();
         }
-      
+
 
         private void UIReferences()
         {
