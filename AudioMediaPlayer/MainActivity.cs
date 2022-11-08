@@ -6,6 +6,7 @@ using Android.Widget;
 using AndroidX.AppCompat.App;
 using AndroidX.AppCompat.Widget;
 using AndroidX.RecyclerView.Widget;
+using AudioMediaPlayer.Services;
 using System;
 using System.Collections.Generic;
 using static AndroidX.ConstraintLayout.Core.Motion.Utils.HyperSpline;
@@ -13,21 +14,23 @@ using Toolbar = AndroidX.AppCompat.Widget.Toolbar;
 
 namespace AudioMediaPlayer
 {
-    [Activity(Label = "@string/app_name", Theme = "@style/AppTheme", MainLauncher = true)]
-    public class MainActivity : AppCompatActivity
+    [Activity(Label = "@string/app_name", Theme = "@style/AppTheme", MainLauncher = true,
+        ConfigurationChanges=Android.Content.PM.ConfigChanges.Orientation | Android.Content.PM.ConfigChanges.ScreenSize)]
+    public class MainActivity : AppCompatActivity,IServiceConnection
     {
        
         private RecyclerView _recyclerViewAudio;
         private RecyclerView.LayoutManager _layoutManager;
         private AudioAdapter _audioAdapter;
         private MyMusicClass _musicClass;
-
+        private MusicBinder _musicBinder;
         public string _musiclastPlayed = "LastPlayed";
         public string _musicFile = "StoredMusic";
         public static bool isBottomPlayer;
         private Toolbar _toolbar;
         public MusicBotttomFragment _musicBotttomFragment;
         int pathFragment;
+        private MusicPlayingService _musicPlayingService;
         protected override void OnCreate(Bundle savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
@@ -35,6 +38,7 @@ namespace AudioMediaPlayer
             // Set our view from the "main" layout resource
             SetContentView(Resource.Layout.activity_main);
             UIReferences();
+            _musicPlayingService = new MusicPlayingService();
             GetMusicList();
 
 
@@ -52,14 +56,29 @@ namespace AudioMediaPlayer
             _audioAdapter = new AudioAdapter(this, _musicClass);
             _audioAdapter.OnItemSelected += _audioAdapter_OnItemSelected;
             _recyclerViewAudio.SetAdapter(_audioAdapter);
+
+            Intent i = new Intent(this,typeof(MusicPlayingService));
+            StartService(i);
+     
         }
         protected override void OnResume()
         {
             base.OnResume();
             GetLastPlayedMusic();
-            
-        }
+            Intent j = new Intent(this, typeof(MusicPlayingService));
+            BindService(j, this, Bind.AutoCreate);
 
+        }
+        protected override void OnPause()
+        {
+            base.OnPause();
+            UnbindService(this);
+        }
+        protected override void OnDestroy()
+        {
+            base.OnDestroy();
+            _musicPlayingService.StopService();
+        }
         private void GetLastPlayedMusic()
         {
             ISharedPreferences sharedPreferences = GetSharedPreferences(_musiclastPlayed, FileCreationMode.Private);
@@ -115,6 +134,17 @@ namespace AudioMediaPlayer
             Xamarin.Essentials.Platform.OnRequestPermissionsResult(requestCode, permissions, grantResults);
 
             base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
+        }
+
+        public void OnServiceConnected(ComponentName name, IBinder service)
+        {
+            _musicBinder = service as MusicBinder;
+            _musicPlayingService = _musicBinder.Service;
+        }
+
+        public void OnServiceDisconnected(ComponentName name)
+        {
+            _musicPlayingService = null;
         }
     }
 }

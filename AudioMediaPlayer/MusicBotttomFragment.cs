@@ -154,7 +154,7 @@ namespace AudioMediaPlayer
                 }
             }
         }
-
+     
         public void OnServiceConnected(ComponentName name, IBinder service)
         {
             _musicBinder = service as MusicBinder;

@@ -22,7 +22,7 @@ using static Android.Media.AudioManager;
 using Toolbar = AndroidX.AppCompat.Widget.Toolbar;
 namespace AudioMediaPlayer
 {
-    [Activity(Label = "@string/app_name", Theme = "@style/AppTheme", MainLauncher = false)]
+    [Activity(Label = "@string/app_name", Theme = "@style/AppTheme", MainLauncher = false, ConfigurationChanges = Android.Content.PM.ConfigChanges.Orientation | Android.Content.PM.ConfigChanges.ScreenSize)]
     public class PlayMusicActivity : AppCompatActivity,SeekBar.IOnSeekBarChangeListener,IMusicPlaying,IServiceConnection,IOnAudioFocusChangeListener
     {
         private Toolbar _toolbar;
@@ -48,6 +48,7 @@ namespace AudioMediaPlayer
         private bool isNextPostion;
         private int mNextPostion;
         private int mPreviousPosition;
+       
         protected override void OnCreate(Bundle savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
@@ -142,7 +143,7 @@ namespace AudioMediaPlayer
             }
             return false;
         }
-
+       
         public void OnAudioFocusChange([GeneratedEnum] AudioFocus focusChange)
         {
             switch (focusChange)  
@@ -150,8 +151,10 @@ namespace AudioMediaPlayer
               case AudioFocus.Gain:
 
                     //Gain when other Music Player app releases the audio service
-                    _musicPlayingService.SetVolume(1f, 1f);
-                    _musicPlayingService.Start();
+                    
+                        _musicPlayingService.SetVolume(1f, 1f);
+                        _musicPlayingService.Start();
+                  
                     break; 
                     
               case AudioFocus.Loss:  
@@ -160,13 +163,16 @@ namespace AudioMediaPlayer
                     break; 
                     
               case AudioFocus.LossTransient:  
-                  //We have lost focus for a short time, but likely to resume so pause  
+                  //We have lost focus for a short time, but likely to resume so pause           
                    _musicPlayingService.Pause();
                    break;  
 
               case AudioFocus.LossTransientCanDuck:
                     //We have lost focus but should till play at a muted 10% volume 
-                   _musicPlayingService.SetVolume(0.2f, 0.2f);
+                    if (_musicPlayingService.isPlaying())
+                    {
+                        _musicPlayingService.SetVolume(0.1f, 0.1f);
+                    }
                    break;  
             } 
         }

@@ -44,16 +44,16 @@ namespace AudioMediaPlayer.Services
         public string _musiclastPlayed = "LastPlayed";
         public string _musicFile = "StoredMusic";
         public int musicPostion;
-
+        public static bool isForgroundServiceRunning;
         public override IBinder OnBind(Intent intent)
         {
-           this.Binder = new MusicBinder(this);
-           return this.Binder;
+            this.Binder = new MusicBinder(this);
+            return this.Binder;
         }
         public override void OnCreate()
         {
             base.OnCreate();
-       
+            isForgroundServiceRunning = true;
             _mediaPlayer = new MediaPlayer();
             CreateNotificationChannel();
             _mediaSession = new MediaSessionCompat(BaseContext, "MyMusicPlayer");
@@ -75,46 +75,46 @@ namespace AudioMediaPlayer.Services
         public override StartCommandResult OnStartCommand(Intent intent, [GeneratedEnum] StartCommandFlags flags, int startId)
         {
 
-            
-            
+
+
             int musicPostion = intent.GetIntExtra("servicePostion", -1);
             string actionName = intent.GetStringExtra("ActionName");
-           
-           
+
+
             if (musicPostion != -1)
             {
                 PlayMedia(musicPostion);
             }
-            if(actionName != null)
+            if (actionName != null)
             {
-              
+
                 switch (actionName)
                 {
                     case "PlayPause":
-                       
+
                         PlayPause();
                         break;
 
                     case "Next":
-                         NextMusic();
-                         break;
+                        NextMusic();
+                        break;
 
                     case "Previous":
-                        
+
                         PreviousMusic();
-                        
+
                         break;
-              
-                   
+
+
                 }
-              
+
             }
-      
+
 
             return StartCommandResult.Sticky;
         }
 
-    
+
 
         public void PlayMedia(int StartPostion)
         {
@@ -123,7 +123,7 @@ namespace AudioMediaPlayer.Services
             {
                 _mediaPlayer.Stop();
                 _mediaPlayer.Release();
-                if(_musicClass != null)
+                if (_musicClass != null)
                 {
                     Create(StartPostion);
                     _mediaPlayer.Start();
@@ -148,7 +148,7 @@ namespace AudioMediaPlayer.Services
 
         public void Stop()
         {
-           _mediaPlayer.Stop();
+            _mediaPlayer.Stop();
         }
         public void Pause()
         {
@@ -173,12 +173,12 @@ namespace AudioMediaPlayer.Services
         }
         public void Create(int resid)
         {
-            
-            _mediaPlayer = MediaPlayer.Create(BaseContext,resid);
-           
+
+            _mediaPlayer = MediaPlayer.Create(BaseContext, resid);
+
 
         }
-        
+
         public int CurrentPostion()
         {
             return _mediaPlayer.CurrentPosition;
@@ -192,7 +192,7 @@ namespace AudioMediaPlayer.Services
         {
             this.miniMusicControls = miniMusicControls;
         }
-        public void ShowNotification(int postion ,int playpausebutton)
+        public void ShowNotification(int postion, int playpausebutton)
         {
             _musicClass = new MyMusicClass();
             musicPostion = postion;
@@ -235,7 +235,7 @@ namespace AudioMediaPlayer.Services
                  .SetSmallIcon(playpausebutton)
                  .SetLargeIcon(bitmap)
                  .SetContentTitle(musicName)
-                 .AddAction(Resource.Drawable.ic_previous, "Previous" , previouspendingintent)
+                 .AddAction(Resource.Drawable.ic_previous, "Previous", previouspendingintent)
                  .AddAction(playpausebutton, "PlayPause", pausependingintent)
                  .AddAction(Resource.Drawable.ic_next, "Next", nextpendingintent)
                  .SetStyle(new AndroidX.Media.App.NotificationCompat.MediaStyle().SetMediaSession(_mediaSession.SessionToken))
@@ -248,9 +248,29 @@ namespace AudioMediaPlayer.Services
 
             StartForeground(1, builder);
 
-         
+
         }
-        public static Bitmap GetBitmapFromVectorDrawable(Context context, int drawableId)
+        public void StopService()
+        {
+            Intent intent = new Intent(Android.App.Application.Context, typeof(MusicNotificationClass));
+            Android.App.Application.Context.StopService(intent);
+            StopForeground(isForgroundServiceRunning);
+            if(_mediaPlayer.IsPlaying)
+            {
+                _mediaPlayer.Stop();
+            }
+        }
+        public override void OnDestroy()
+        {
+            base.OnDestroy();
+            isForgroundServiceRunning = false;
+        }
+       public bool IsForegroundServiceRunning()
+       {
+         return isForgroundServiceRunning;
+
+       }
+    public static Bitmap GetBitmapFromVectorDrawable(Context context, int drawableId)
         {
             Drawable drawable = ContextCompat.GetDrawable(context, drawableId);
             if (Build.VERSION.SdkInt < BuildVersionCodes.O)
@@ -289,28 +309,28 @@ namespace AudioMediaPlayer.Services
             }
         }
 
-        private void MiniNext()
-        {
-            if (miniMusicControls != null)
-            {
-                miniMusicControls.MiniNext();
-            }
-        }
+    //    private void MiniNext()
+    //    {
+    //        if (miniMusicControls != null)
+    //        {
+    //            miniMusicControls.MiniNext();
+    //        }
+    //    }
 
-        private void MiniPlay()
-        {
-            if (miniMusicControls != null)
-            {
-                miniMusicControls.MiniPlayPause();
-            }
-        }
+    //    private void MiniPlay()
+    //    {
+    //        if (miniMusicControls != null)
+    //        {
+    //            miniMusicControls.MiniPlayPause();
+    //        }
+    //    }
 
-        private void MiniPrevious()
-        {
-            if (miniMusicControls != null)
-            {
-                miniMusicControls.MiniPrevious();
-            }
-        }
+    //    private void MiniPrevious()
+    //    {
+    //        if (miniMusicControls != null)
+    //        {
+    //            miniMusicControls.MiniPrevious();
+    //        }
+    //    }
     }
 }
